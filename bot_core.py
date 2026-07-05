@@ -49,7 +49,7 @@ def _load_templates():
             "close", "forward", "lets_go", "hold", "reconnect", "reload",
             "home", "back", "continue", "mega_quest", "brawlers_btn",
             "select_brawler", "trophy_icon", "understand", "next_green",
-            "prime_tag",
+            "prime_tag", "anr_title", "anr_close", "battle_indicator",
         ]
         file_map = {
             "play": "play_btn.png", "next": "next_btn.png", "exit": "exit_btn.png",
@@ -63,6 +63,8 @@ def _load_templates():
             "brawlers_btn": "brawlers_menu_btn.png", "select_brawler": "select_btn.png",
             "trophy_icon": "trophy_icon.png", "understand": "understand_btn.png",
             "next_green": "next_green_btn.png", "prime_tag": "prime_tag.png",
+            "anr_title": "anr_title.png", "anr_close": "anr_close_btn.png",
+            "battle_indicator": "battle_indicator.png",
         }
         for key in names:
             templates[key] = cv2.imread(os.path.join(IMG_DIR, file_map[key]), cv2.IMREAD_COLOR)
@@ -374,6 +376,32 @@ class BotEngine:
                 last_x = x
         return int(final_str) if final_str else None
 
+    def _is_gray_error_plate(self, screen):
+        """
+        Настоящая серая плашка сетевой ошибки — это ровный, однотонный
+        прямоугольник. Раньше проверялся один пиксель (270, 480) на
+        попадание B и G в диапазон 50-65 без учёта R вообще — из-за этого
+        портрет некоторых бойцов на экране выбора (например, Булла) в этой
+        же точке экрана случайно попадал в диапазон и бот принимал обычный
+        экран за ошибку сети.
+        Теперь проверяем небольшую область вокруг точки:
+          1) все три канала должны быть серыми (близки друг к другу),
+          2) разброс (variance) внутри области должен быть маленьким —
+             у арта персонажа всегда есть текстура/тени, у плашки нет.
+        """
+        if screen is None:
+            return False
+        region = screen[260:280, 470:490]
+        if region.size == 0:
+            return False
+        mean_b, mean_g, mean_r = (float(region[:, :, i].mean()) for i in range(3))
+        if not (45 <= mean_b <= 70 and 45 <= mean_g <= 70 and 45 <= mean_r <= 70):
+            return False
+        if max(abs(mean_b - mean_g), abs(mean_g - mean_r), abs(mean_b - mean_r)) > 8:
+            return False
+        std_max = float(region.reshape(-1, 3).std(axis=0).max())
+        return std_max < 6
+
     def _is_brawl_running(self, device):
         try:
             focus = device.shell("dumpsys window | grep -E 'mCurrentFocus|mFocusedApp'")
@@ -411,6 +439,12 @@ class BotEngine:
         self.stats.record_game_crash(w.window_id)
         self._notify("game_crash", w.window_id)
         try:
+            # Если процесс просто завис (ANR) или "зомби", повторная отправка
+            # launch-intent через monkey может просто вернуть на передний план
+            # тот же зависший экран, ничего не перезапуская. force-stop гарантирует
+            # чистый старт в любом случае.
+            device.shell("am force-stop com.supercell.brawlstars")
+            smart_sleep(1.5)
             device.shell("monkey -p com.supercell.brawlstars -c android.intent.category.LAUNCHER 1")
             smart_sleep(15)
         except Exception:
@@ -509,11 +543,33 @@ class BotEngine:
                             self.windows.pop(window_id, None)
                         return
 
-                if not self._is_brawl_running(device):
+                t = self.templates
+
+                # Скриншот берём ДО проверки "запущена ли игра": системный диалог
+                # "Приложение не отвечает" (ANR) может не принадлежать фокусу
+                # com.supercell.brawlstars, поэтому раньше бот считал игру
+                # незапущенной и просто слал launch-intent поверх зависшего экрана,
+                # диалог не закрывался и игра реально не открывалась.
+                screen = self._get_screenshot(device)
+
+                anr_hit = self._find_template(screen, t.get("anr_title"), 0.70) if screen is not None else None
+                if anr_hit:
+                    self._update_status(w, "💥 Игра зависла (ANR). Закрываю и перезапускаю...")
+                    close_btn = self._find_template(screen, t.get("anr_close"), 0.70)
+                    self._random_click(device, *(close_btn or (357, 284)))
+                    smart_sleep(2)
+                    try:
+                        device.shell("am force-stop com.supercell.brawlstars")
+                    except Exception:
+                        pass
+                    smart_sleep(1)
                     self._start_brawl_fresh(device, w, None)
                     continue
 
-                screen = self._get_screenshot(device)
+                if not self._is_brawl_running(device):
+                    self._start_brawl_fresh(device, w, screen)
+                    continue
+
                 if screen is not None:
                     w.last_screenshot = screen
                 if screen is None:
@@ -525,8 +581,6 @@ class BotEngine:
                     w._manual_restart = False
                     self._restart_brawl(device, w)
                     continue
-
-                t = self.templates
 
                 reconnect = self._find_template(screen, t.get("reconnect"), 0.65)
                 if reconnect:
@@ -546,8 +600,7 @@ class BotEngine:
                     smart_sleep(12)
                     continue
 
-                central_pixel = screen[270, 480]
-                if 50 <= central_pixel[0] <= 65 and 50 <= central_pixel[1] <= 65:
+                if self._is_gray_error_plate(screen):
                     self._update_status(w, "📡 Серая плашка ошибки")
                     self.stats.record_reconnect(window_id)
                     self._notify("reconnect", window_id)
@@ -690,11 +743,20 @@ class BotEngine:
                             self._restart_brawl(device, w)
                     continue
 
-                self._update_status(w, "⚔️ В матче")
-                self._simulate_battle_actions(device)
-                if random.random() < 0.30:
-                    self._random_click(device, 480, 30)
-                smart_sleep(1.0)
+                # Раньше "в матче" считалось единственным вариантом, если ни одна
+                # другая кнопка не нашлась (определение "от противного"). Теперь
+                # дополнительно ищем реальный индикатор боя на экране — так бот
+                # не начнёт слать боевые тапы на незнакомом/непредусмотренном экране.
+                battle_icon = self._find_template(screen, t.get("battle_indicator"), 0.70)
+                if battle_icon:
+                    self._update_status(w, "⚔️ В матче")
+                    self._simulate_battle_actions(device)
+                    if random.random() < 0.30:
+                        self._random_click(device, 480, 30)
+                    smart_sleep(1.0)
+                else:
+                    self._update_status(w, "❓ Неизвестный экран")
+                    smart_sleep(1.5)
 
             except Exception as exc:
                 self._update_status(w, "⚠️ Ошибка цикла")

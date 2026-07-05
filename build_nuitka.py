@@ -32,11 +32,8 @@ def _nuitka_base_args():
         "--enable-plugin=pyside6",
     ]
     img_dir = os.path.join(PROJECT_DIR, "img")
-    icons_dir = os.path.join(PROJECT_DIR, "icons")
     if os.path.isdir(img_dir):
         args.append(f"--include-data-dir={img_dir}=img")
-    if os.path.isdir(icons_dir):
-        args.append(f"--include-data-dir={icons_dir}=icons")
     return args
 
 
