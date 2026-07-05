@@ -1,0 +1,20 @@
+# Кэш Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Папки сборки (Nuitka / PyInstaller)
+build/
+dist/
+*.onefile-build/
+
+# Конфиги и локальные базы данных (из твоего проекта)
+settings.json
+stats_data.json
+
+# Логи и окружение (на всякий случай)
+*.log
+.venv/
+venv/
+ENV/
