@@ -1,0 +1,109 @@
+{
+  "total_time": 0,
+  "windows": {
+    "Окно #1": {
+      "start_trophies": null,
+      "current_trophies": null,
+      "matches": 0,
+      "victories": 0,
+      "losses": 0,
+      "primes_upgraded": 0,
+      "afk_kicks": 1,
+      "reconnects": 0,
+      "game_crashes": 0,
+      "running_time_seconds": 15.700135469436646,
+      "last_activity": "2026-07-05T21:10:16"
+    },
+    "Окно #2": {
+      "start_trophies": null,
+      "current_trophies": null,
+      "matches": 0,
+      "victories": 0,
+      "losses": 0,
+      "primes_upgraded": 0,
+      "afk_kicks": 1,
+      "reconnects": 0,
+      "game_crashes": 1,
+      "running_time_seconds": 15.85402774810791,
+      "last_activity": "2026-07-05T21:10:30"
+    },
+    "Окно #3": {
+      "start_trophies": null,
+      "current_trophies": null,
+      "matches": 0,
+      "victories": 0,
+      "losses": 0,
+      "primes_upgraded": 0,
+      "afk_kicks": 1,
+      "reconnects": 0,
+      "game_crashes": 1,
+      "running_time_seconds": 12.432087182998657,
+      "last_activity": "2026-07-05T21:10:27"
+    },
+    "Окно #4": {
+      "start_trophies": null,
+      "current_trophies": null,
+      "matches": 0,
+      "victories": 0,
+      "losses": 0,
+      "primes_upgraded": 0,
+      "afk_kicks": 1,
+      "reconnects": 0,
+      "game_crashes": 1,
+      "running_time_seconds": 13.105194807052612,
+      "last_activity": "2026-07-05T21:10:28"
+    }
+  },
+  "daily": {
+    "2026-07-05": {
+      "Окно #1": {
+        "matches": 0,
+        "victories": 0,
+        "losses": 0,
+        "primes_upgraded": 0,
+        "afk_kicks": 1,
+        "reconnects": 0,
+        "game_crashes": 0,
+        "trophies_gained": 0,
+        "time_seconds": 15.700135469436646,
+        "_day_start_trophies": null
+      },
+      "Окно #2": {
+        "matches": 0,
+        "victories": 0,
+        "losses": 0,
+        "primes_upgraded": 0,
+        "afk_kicks": 1,
+        "reconnects": 0,
+        "game_crashes": 1,
+        "trophies_gained": 0,
+        "time_seconds": 15.85402774810791,
+        "_day_start_trophies": null
+      },
+      "Окно #3": {
+        "matches": 0,
+        "victories": 0,
+        "losses": 0,
+        "primes_upgraded": 0,
+        "afk_kicks": 1,
+        "reconnects": 0,
+        "game_crashes": 1,
+        "trophies_gained": 0,
+        "time_seconds": 12.432087182998657,
+        "_day_start_trophies": null
+      },
+      "Окно #4": {
+        "matches": 0,
+        "victories": 0,
+        "losses": 0,
+        "primes_upgraded": 0,
+        "afk_kicks": 1,
+        "reconnects": 0,
+        "game_crashes": 1,
+        "trophies_gained": 0,
+        "time_seconds": 13.105194807052612,
+        "_day_start_trophies": null
+      }
+    }
+  }
+}

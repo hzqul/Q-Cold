@@ -1,0 +1,15 @@
+{
+  "adb_path": "C:\\LDPlayer\\LDPlayer9\\adb.exe",
+  "auto_restart_enabled": true,
+  "auto_restart_matches": 30,
+  "auto_change_mode": "prime",
+  "auto_change_matches": 10,
+  "action_delay": 1.0,
+  "telegram_enabled": false,
+  "telegram_token": "",
+  "telegram_chat_id": "",
+  "window_display_names": {},
+  "github_owner": "hzqul",
+  "github_repo": "https://github.com/hzqul/Q-Cold.git",
+  "current_version": "1.0.0"
+}
